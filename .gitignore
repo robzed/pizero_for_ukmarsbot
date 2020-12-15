@@ -1,0 +1,8 @@
+
+
+# Random Mac files
+.DS_Store
+
+# documents off the web that we shouldn't commit to git
+for_reference_do_not_track/
+
