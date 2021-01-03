@@ -9,23 +9,11 @@ plate_z_normal = 3;
 
 peg_offset = 4.25;
 
-// stop up top holes
-//translate([2,-11.5,10]) cube([5,23,2]);
-module pegs(y_offset)
+module pegs(y_offset, x_offset = 0, r=3)
 {
-    translate([peg_offset, y_offset, -2])
+    translate([peg_offset+x_offset, y_offset, 3])
     {   
-//        difference()
-        {
-            //cylinder(20, 1.5, 1.5, $fn=20);
-            translate([0, 0, 5])
-            {
-                cylinder(20, 3, 3, $fn=40);
-            }
-        
-            // cutout clips
-            //translate([-5, -0.5, -0.01]) cube([10, 1, 2]);
-        }
+        cylinder(20, r, r, $fn=40);        
     }
 }
 
@@ -44,6 +32,7 @@ module make_motor_mount(plate_x = plate_x_normal, plate_y = plate_y_normal, plat
             {
                 pegs(8.9);
                 pegs(-8.9);
+                pegs(0, 4.7, 1);
             }
         }
     }
