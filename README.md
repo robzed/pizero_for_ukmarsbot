@@ -45,6 +45,7 @@ We will be using a Pi Zero (not a Pi Zero W which uses more power).
  - [Disable Linux Console on UART](Documentation/Disable_Linux_Console_on_UART.md)
  - [Scripting language for the I/O processor](Documentation/Pi_and_Nano_Software.md)
  - [Mechanical Mounting - Mounting the Pi Zero onto UKMarsBot](Documentation/Mechanical.md)
+ - [Software for the Pi Zero](Documentation/Pi_Zero_Software.md)
  - [Shutdown down the Pi Zero](Documentation/Shutdown_Pi_Automatically.md)
 
 # Advanced Topics (Not finished)
