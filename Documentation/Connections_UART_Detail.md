@@ -51,3 +51,15 @@ The second option 2 what I will use, but the diagram below shows the optional di
 
 
 
+## Images 
+
+The images show: Red (+5V), Brown (Rx - Receive to Arduino), Black (0v/Ground), White (Tx - Transmit from Arduino).
+
+Notice some of these images show an addition blue wire. This is connected (via a schottky diode) to the reset pin - thoeretically so a GPIO on the Pi Zero can pull down and reset the Arduino for programming. The diode avoids the GPIO on the Pi Zero pulling up or fighting the other part of the circuit. This method of resetting has not been tested.
+
+![Motherboard View of Connections](images/motherboard_connector_wiring.jpg)
+![Pi Connections View](images/pi_connections_view.jpg)
+
+This shows the two resistors, basic soldering for the inline lead. The yellow, green and blue sleeving is heat shrink tubing and it will be moved over the solder joins and protect the wires from shorting. The final assembly had larger black heat shrink tubing over all the wires - you can see this on the other images (e.g. on the mechanical pages).
+![Wiring Loom](images/wiring_view.jpg)
+
