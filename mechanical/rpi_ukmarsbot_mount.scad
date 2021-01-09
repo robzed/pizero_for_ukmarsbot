@@ -42,12 +42,13 @@ pizero_y = 30;
 corner_r = 3;
 hole_d = 2.75;
 hole_r = hole_d / 2;
-plate_height = 3;
+plate_height_front = 3;
+plate_height_mid = 5;   // miss motor cables
 cut_off = 0.1;
 support_height = plate_height + 4;
 
 // Basic Raspberry Pi support
-module basic_pi_zero_support(hole)
+module basic_pi_zero_support(hole, plate_height)
 {
     difference() {
         rounded_plate(pizero_x, pizero_y, plate_height, 3);
