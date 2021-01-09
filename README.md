@@ -1,7 +1,8 @@
 # Pizero for ukmarsbot
-Adding a Rapberry Pi Zero onto a UK Mars Bot
+Adding a Rapberry Pi Zero onto the UK Mars Bot
 
 ![UKMarsBot and Pi Zero](images/ukmarsbot_pizero.jpeg)
+![UKMarsBot_and_Pi](images/pi_mid_mount_fitted_small.jpg)]
 
 # Background
 The UKMarsBot is a maze solver and line follower, designed by the UK Mars and Robotics Society (UKMars). It has a Arduino Nano attached as the standard microcontroller. 
@@ -17,15 +18,11 @@ This project aims to add a Raspberry Pi Zero to that basic design.
 
 There are two potential methods of connecting a Raspberry Pi Zero to the UKMARSbot:
 
-1. Produce an adapter board that converts the Pi Zero header to the Arduino Nano footprint, completely replacing the Ardunio Nano. Some things that will need to be take care of:
-   - Provide an ADC - potentially with a serial interface like I2C or SPI. 
-   - Provide a 5v regulator.
-   - Convert the UKMARS I/O to 3v3. This is not overly problematic- - the http://ukmars.org site details this for other boards (like the Arduino Nano 33 BLE).
-   - Figure out how to route a PWM signal to the motors for speed control.
-   - See '[Replacing the Arduino Nano Entirely](Documentation/Nano_Replacement.md)' for further details
+1. Produce an adapter board that converts the Pi Zero header to the Arduino Nano footprint, completely replacing the Ardunio Nano. 
 2. Connect the Raspberry Pi to the Arduino over a serial interface to the existing Arduino Nano and use the Nano as an I/O processor.
 
-This article will examine the *second* option since this is the simpler option to construct, without a custom PCB.
+This article will examine the **second** option since this is the simpler option to construct, without a custom PCB. (There are, however, some notes on method 1 provided in '[Replacing the Arduino Nano Entirely](Documentation/Nano_Replacement.md)'.)
+
 
 
 # Parts required 
