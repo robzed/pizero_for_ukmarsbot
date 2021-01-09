@@ -42,13 +42,13 @@ pizero_y = 30;
 corner_r = 3;
 hole_d = 2.75;
 hole_r = hole_d / 2;
-plate_height_front = 3;
-plate_height_mid = 5;   // miss motor cables
+plate_height = 3;
 cut_off = 0.1;
-support_height = plate_height + 4;
+support_height_front = plate_height + 4;
+support_height_mid = plate_height + 6;      // extra clearance for cables
 
 // Basic Raspberry Pi support
-module basic_pi_zero_support(hole, plate_height)
+module basic_pi_zero_support(hole, support_height=support_height_front)
 {
     difference() {
         rounded_plate(pizero_x, pizero_y, plate_height, 3);
@@ -124,7 +124,7 @@ module complete_pi_plate_mid(hole=true)
 {
     translate([0, 0, plate_top_height+height_above_top_motor_plate])
     {
-        translate([-pizero_x/2, plate_y_normal/2-plate_motor_mount_overlap-26, 0]) basic_pi_zero_support(hole);
+        translate([-pizero_x/2, plate_y_normal/2-plate_motor_mount_overlap-26, 0]) basic_pi_zero_support(hole, support_height_mid);
         // This is the connection plate
         connection_to_UKMARSBot_mid_plate(12, 10, distance_between_motor_mount_holes-3.5);
     }
