@@ -85,6 +85,22 @@ module connection_to_UKMARSBot(x, y, xh)
     }
 }
 
+module connection_to_UKMARSBot_mid_plate(x, y, xh)
+{
+    translate([-xh/2, 0, 0]) {
+        difference() {            
+            translate([-x/2, -y/2, 0]) rounded_plate(x, y, plate_height, 3);
+            translate([3, 0, -0.1] ) cylinder(r=1.5, h = 30, $fn=25);
+        }
+    }
+    translate([xh/2, 0, 0]) {
+        difference() {
+            translate([-x/2, -y/2, 0]) rounded_plate(x, y, plate_height, 3);
+            translate([-3, 0, -0.1] ) cylinder(r=1.5, h = 30, $fn=25);
+        }
+    }
+}
+
 distance_between_motor_mount_holes = 2.15 * 25.4; // according to ukmarsbot_dimensions.png
 plate_y_normal = 28;
 plate_top_height = 11+3;
@@ -93,21 +109,28 @@ plate_motor_mount_overlap = 2.5;
 
 
 
-module complete_pi_plate(hole=true)
+module complete_pi_plate_front(hole=true)
 {
     translate([0, plate_y_normal/2-plate_motor_mount_overlap, plate_top_height+height_above_top_motor_plate])
     {
         translate([-pizero_x/2, 0, 0]) basic_pi_zero_support(hole);
         // This is the connection plate
         connection_to_UKMARSBot(distance_between_motor_mount_holes-3.5, 18, distance_between_motor_mount_holes-15.5);
-        //connection_to_UKMARSBot(distance_between_motor_mount_holes+1.55, 25.6);
     }
 }
 
-module full_assembly(plate_z_new)
+module complete_pi_plate_mid(hole=true)
 {
-    complete_pi_plate();
+    translate([0, 0, plate_top_height+height_above_top_motor_plate])
+    {
+        translate([-pizero_x/2, plate_y_normal/2-plate_motor_mount_overlap-26, 0]) basic_pi_zero_support(hole);
+        // This is the connection plate
+        connection_to_UKMARSBot_mid_plate(12, 10, distance_between_motor_mount_holes-3.5);
+    }
+}
 
+module motor_mounts(plate_z_new)
+{
     // these are the motor mounts
     translate([-distance_between_motor_mount_holes/2, 0, 0]) {
         make_motor_mount(plate_z=plate_z_new);
@@ -122,56 +145,30 @@ module full_assembly(plate_z_new)
     }
 }
 
-module motor_mounts_only(plate_z_new)
-{
-    difference()
-    {
-        union()
-        {
-            // these are the motor mounts
-            translate([-distance_between_motor_mount_holes/2, 0, 0]) {
-                make_motor_mount(plate_z=plate_z_new);
-            }
-            
-            translate([distance_between_motor_mount_holes/2, 0, 0]) {
-                rotate([0, 0, 180]) { 
-                    make_motor_mount(plate_z=plate_z_new);
-                }
-            }
-        }
-        union()
-        {
-            //complete_pi_plate();
-            //translate([0.5, 0, 0.5]) complete_pi_plate(hole=false);
-            //translate([-0.5, 0, 0.5]) complete_pi_plate(hole=false);
-            //translate([0.5, 0, -0.5]) complete_pi_plate(hole=false);
-            //translate([-0.5, 0, -0.5]) complete_pi_plate(hole=false);
-        }
-    }
-}
+
 // plate_z_new:
 //      5 = touch connecting plate
 //      plate_z_new = 7+1;
 //      10 = above
 
+// =======================================================
 // Different options
 //
+SELECT_PI_PLATE_FRONT = false;
+MOTOR_MOUNTS = true;
+SELECT_PI_PLATE_MID = true;
+// =======================================================
 
-SELECT_FULL_ASSEMBLY = false;
-SELECT_COMPLETE_PI_PLATE = true;
-MOTOR_MOUNTS_ONLY = false;
-
-if(SELECT_FULL_ASSEMBLY)
+if(SELECT_PI_PLATE_FRONT)
 {
-    full_assembly(5);
+    complete_pi_plate_front();
 }
-else if(SELECT_COMPLETE_PI_PLATE)
+if(MOTOR_MOUNTS)
 {
-    complete_pi_plate();
+    motor_mounts(5);
 }
-else if(MOTOR_MOUNTS_ONLY)
+if(SELECT_PI_PLATE_MID)
 {
-    motor_mounts_only(5);
+    complete_pi_plate_mid();
 }
-
 
