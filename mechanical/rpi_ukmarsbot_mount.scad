@@ -48,16 +48,23 @@ support_height_front = plate_height + 4;
 support_height_mid = plate_height + 6;      // extra clearance for cables
 
 // Basic Raspberry Pi support
-module basic_pi_zero_support(hole, support_height=support_height_front)
+module basic_pi_zero_support(hole, wire_cut = false, support_height=support_height_front)
 {
     difference() {
         rounded_plate(pizero_x, pizero_y, plate_height, 3);
         
         // remove some material - to make it lighter
         // also misses mini-USB socket
-        translate([0,0,-0.1]) hull /* union */ () {
-            support(pizero_x/4, pizero_y/2, plate_height+0.2, 12, f=50);
-            support(pizero_x/4*3, pizero_y/2, plate_height+0.2, 12, f=50);
+        translate([0,0,-0.1]) { 
+            hull /* union */ () {
+                support(pizero_x/4, pizero_y/2, plate_height+0.2, 12, f=50);
+                support(pizero_x/4*3, pizero_y/2, plate_height+0.2, 12, f=50);
+            }
+            if(wire_cut)
+            {
+                gap_width = pizero_x*0.6;
+                translate([(pizero_x-gap_width)/2,0,0]) cube([gap_width, pizero_y/4, plate_height+0.2]);
+            }
         }
     }
     four_posts(pizero_x, pizero_y, support_height, 3, hole_r, hole);
@@ -124,7 +131,7 @@ module complete_pi_plate_mid(hole=true)
 {
     translate([0, 0, plate_top_height+height_above_top_motor_plate])
     {
-        translate([-pizero_x/2, plate_y_normal/2-plate_motor_mount_overlap-26, 0]) basic_pi_zero_support(hole, support_height_mid);
+        translate([-pizero_x/2, plate_y_normal/2-plate_motor_mount_overlap-26, 0]) basic_pi_zero_support(hole, true, support_height_mid);
         // This is the connection plate
         connection_to_UKMARSBot_mid_plate(12, 10, distance_between_motor_mount_holes-3.5);
     }
@@ -135,13 +142,11 @@ module motor_mounts(plate_z_new)
     // these are the motor mounts
     translate([-distance_between_motor_mount_holes/2, 0, 0]) {
         make_motor_mount(plate_z=plate_z_new);
-        //translate([-4,-6,12]) cube([11.5,12,9]);
     }
     
     translate([distance_between_motor_mount_holes/2, 0, 0]) {
         rotate([0, 0, 180]) {
             make_motor_mount(plate_z=plate_z_new);
-            //translate([-4,-6,12]) cube([11.5,12,9]);
         }
     }
 }
