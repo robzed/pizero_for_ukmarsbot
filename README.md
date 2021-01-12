@@ -54,4 +54,9 @@ We will be using a Pi Zero (not a Pi Zero W which uses more power).
  - [Replacing the Arduino Nano Entirely](Documentation/Nano_Replacement.md)
  - [Crazy and Wierd ideas](Documentation/Other_Crazy_Ideas.md)
 
+# Future
+ - Increasing the 5v power available to the Pi
+ - Fitting a camera
+
+
 
