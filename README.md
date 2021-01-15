@@ -13,6 +13,7 @@ The UKMarsBot is a maze solver and line follower, designed by the UK Mars and Ro
 
 This project aims to add a Raspberry Pi Zero to that basic design.
 
+There is a provisional scope document here ![UKMARSPIBOT_enhancement_scope.pdf](Documentation/UKMARSPIBOT_enhancement_scope.pdf)
 
 # Methods
 
