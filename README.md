@@ -15,6 +15,8 @@ This project aims to add a Raspberry Pi Zero to that basic design.
 
 There is a provisional scope document here ![UKMARSPIBOT_enhancement_scope.pdf](Documentation/UKMARSPIBOT_enhancement_scope.pdf)
 
+There is a related seperate GitHub project for the Arduino Nano I/O coprocessor software: https://github.com/robzed/ukmarsey 
+
 # Methods
 
 There are two potential methods of connecting a Raspberry Pi Zero to the UKMARSbot:
