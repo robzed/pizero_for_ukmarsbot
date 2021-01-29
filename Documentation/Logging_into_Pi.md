@@ -48,4 +48,5 @@ The time and date will not be set. If this bugs you, type:
 
     sudo date -s "6 Dec 2020 22:36"
 
+If the board gets network access, then NTP will synchronise the time.
 

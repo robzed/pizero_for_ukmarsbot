@@ -25,6 +25,56 @@ The Pi Zero needs software to:
  * Decide when to stop (e.g. when batteries are too low, or we have complete the mission).
  * Decide when to shutdown the Pi Zero.
 
+# Setup Python serial library
+
+We will use Python 3 here. If you try to import serial you will probably get an error:
+
+    python3
+    pi@raspberrypi:~ $ python3
+    Python 3.7.3 (default, Jul 25 2020, 13:03:44) 
+    [GCC 8.3.0] on linux
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> import serial
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    ModuleNotFoundError: No module named 'serial'
+    >>> quit()
+
+So you'll need to install it for Python 3. Let's do it via pip3. You need network access - so if you are just using on the OTG you need to make sure you have network access. There is information here [Sharing the Internet via OTG](Documentation/Sharing_your_internet_OTG.md)
+
+    sudo apt-get install python3-pip
+
+Then install pyserial
+
+    sudo pip3 install pyserial
+
+Then:
+
+    pi@raspberrypi:~ $ python3
+    Python 3.7.3 (default, Jul 25 2020, 13:03:44) 
+    [GCC 8.3.0] on linux
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> import serial
+    >>> port = serial.Serial("/dev/serial0", baudrate = 115200, timeout = 0.1)
+    >>> print(port)
+    Serial<id=0xb6687d10, open=True>(port='/dev/serial0', baudrate=115200, bytesize=8, parity='N', stopbits=1, timeout=0.1, xonxoff=False, rtscts=False, dsrdtr=False)
+    >>> port.inWaiting()
+    0
+
+
+If you have a problem accessing the serial, you might need to give the 'pi' user access - the group is 'dialout'. You can check with the groups command. 
+
+    pi@raspberrypi:~ $ groups
+    pi adm dialout cdrom sudo audio video plugdev games users input netdev gpio i2c spi
+
+You can add the 'pi' to the group with:
+
+    sudo adduser pi dialout
+
+For other users replace pi with the user name. 
+
+
+
 
 **(This is not finished yet)**
 

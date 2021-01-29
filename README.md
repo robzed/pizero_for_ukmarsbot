@@ -4,6 +4,8 @@ Adding a Rapberry Pi Zero onto the UK Mars Bot
 ![UKMarsBot and Pi Zero](images/ukmarsbot_pizero.jpeg)
 ![UKMarsBot_and_Pi](images/pi_mid_mount_fitted_small.jpg)]
 
+NOTE: 
+
 # Background
 The UKMarsBot is a maze solver and line follower, designed by the UK Mars and Robotics Society (UKMars). It has a Arduino Nano attached as the standard microcontroller. 
 
@@ -47,6 +49,8 @@ We will be using a Pi Zero (not a Pi Zero W which uses more power).
  - [Mechanical Mounting - Mounting the Pi Zero onto UKMarsBot](Documentation/Mechanical.md)
  - [Software for the Pi Zero](Documentation/Pi_Zero_Software.md)
  - [Shutdown down the Pi Zero](Documentation/Shutdown_Pi_Automatically.md)
+ - [Upgrading the Pi Zero Operating System](Documentation/Upgrading_the_operating_system.md)
+
 
 # Advanced Topics (Not finished)
  - [Using a Pi Zero W instead of a Pi Zero](Documentation/Pi_Zero_W.md)
@@ -56,6 +60,10 @@ We will be using a Pi Zero (not a Pi Zero W which uses more power).
  - [Reducing Pi Zero Power consumption](Documentation/Reducing_Power_Consumption.md)
  - [Replacing the Arduino Nano Entirely](Documentation/Nano_Replacement.md)
  - [Crazy and Wierd ideas](Documentation/Other_Crazy_Ideas.md)
+ - [Remote Debugging Python on a Robot](Documentation/RemoteDebuggingPython.md)
+
+# Other Topcs
+ - [Sharing the Internet via OTG](Documentation/Sharing_your_internet_OTG.md)
 
 # Future
  - Increasing the 5v power available to the Pi
