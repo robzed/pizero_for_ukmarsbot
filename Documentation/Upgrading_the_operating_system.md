@@ -1,6 +1,6 @@
 # Updating the Raspberry Pi OS
 
-If you are running OTG, you need to make sure you have Internet sharing enabled. See Sharing_your_internet_OTG.md
+If you are running OTG, you need to make sure you have Internet sharing enabled. See [Sharing your Internet](Sharing_your_internet_OTG.md)
 
 
 ## Upgrading
