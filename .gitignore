@@ -6,3 +6,8 @@
 # documents off the web that we shouldn't commit to git
 for_reference_do_not_track/
 
+# Python specific files to ignore
+*.pyc
+
+# Esclipse specific files to ignore
+.settings/
