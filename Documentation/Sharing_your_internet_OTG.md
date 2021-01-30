@@ -10,6 +10,9 @@ Make sure you have selected where you have sleected where to share your internet
 
 https://raspberrypi.stackexchange.com/questions/47678/rndis-ethernet-gadget-share-internet
 
+NOTE: Internet sharing can stop sleep while enabled, especially if connected to AC Power.
+
+
 ## Windows
 
 **todo**
