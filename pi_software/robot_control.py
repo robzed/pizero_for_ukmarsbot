@@ -82,17 +82,24 @@ else:
 
 ################################################################
 # 
+# Constants
+# 
+
+# Set this to a resonable value
+BATTERY_VOLTAGE_TO_SHUTDOWN = 7.0   # volts
+
+# if we don't get this version, then abort!
+MINIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION = 1.2
+NEWLINE = b"\x0A"    # could be "\n" ... but we know only one byte is required
+UKMARSEY_CLI_ENCODING = 'utf8'
+
+################################################################
+# 
 # Globals
 # 
 
 numeric_error_codes = False
 echo_on = True
-
-################################################################
-# 
-# Constants
-# 
-NEWLINE = b"\x0A"    # could be "\n" ... but we know only one byte is required
 
 ################################################################
 # 
@@ -109,6 +116,7 @@ HELP_COMMAND = b"h" + NEWLINE
 SWITCH_READ_COMMAND = b"s" + NEWLINE
 BATTERY_READ_COMMAND = b"b" + NEWLINE
 MOTOR_ACTION_STOP_COMMAND = b"x" + NEWLINE
+LED_COMMAND = b"l%i" + NEWLINE
 
 CONTROL_C_ETX = b"\x03"      # aborts line
 CONTROL_X_CAN = b"\x18"      # aborts line and resets interpreter
@@ -144,7 +152,7 @@ class SerialSyncError(Exception):
 
 ################################################################
 # 
-# Functions
+# General Commad Helper Functions
 # 
 
 def do_command(port, command):
@@ -168,9 +176,10 @@ def process_unsolicited_data(data):
 def blocking_process_reply(port, expected):
     """ This is a generic reply handler, that handles the most common cases of 
     a single expected return"""
-
+    #print("Expecting", expected)
     while True:
         data = port.read_until(expected=NEWLINE)
+        #print('blocking_process_reply:', data)
         if data[-1:] == NEWLINE:
             if data.startswith(expected):
                 return True
@@ -253,8 +262,16 @@ def do_ok_test(port):
 def get_version(port):
     """ get_version is a very basic command that gets the version. Used for getting the version"""
     port.write(SHOW_VERSION_COMMAND)
-    reply = blocking_get_reply(port)
-    print(reply.rstrip())
+    reply = blocking_get_reply(port).rstrip()
+    if len(reply) < 2 or reply[:1] != b'v':
+        print("Version returned =", reply)
+        raise MajorError("Version return not correct")
+    version = float(reply[1:].decode(UKMARSEY_CLI_ENCODING))
+
+    if version < MINIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION:
+        print("Minimum required", MINIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION)
+        MajorError("Version too old for Pi Zero control program")
+    return version
 
 def set_echo_off(port):
     """ Send an echo off to supress echoing of the commands back to us.
@@ -275,19 +292,53 @@ def set_echo_on(port):
     echo_on = True
 
 def set_numeric_error_codes(port):
-    MajorError("Unimplemented") 
+    port.write(VERBOSE_OFF_COMMAND) 
+    # No reply expected
+    global numeric_error_codes
+    numeric_error_codes = True
 
 def set_text_error_codes(port):
-    MajorError("Unimplemented") 
+    port.write(VERBOSE_ON_COMMAND) 
+    # No reply expected
+    global numeric_error_codes
+    numeric_error_codes = False
 
 def get_switches(port):
-    MajorError("Unimplemented") 
+    """ get_switches """
+    port.write(SWITCH_READ_COMMAND)
+    reply = blocking_get_reply(port).rstrip()
+    return int(reply.decode(UKMARSEY_CLI_ENCODING))
+
+
+def change_arduino_led(port, state):
+    """
+    Turn on/off Arduino LED 
+
+    :param port: serial port, as opened by main
+    :param state: 0 or 1 for off and on
+    :return: Nothing returned
+    """
+    port.write(LED_COMMAND % state) 
+    # No reply expected
+    
+def change_sensor_led(port, led, state):
+    raise MajorError("Unimplemented") 
+
+def get_battery_voltage(port):
+    """ get battery voltage in volts"""
+    port.write(BATTERY_READ_COMMAND)
+    return float(blocking_get_reply(port).decode(UKMARSEY_CLI_ENCODING))
 
 def get_sensors(port):
-    MajorError("Unimplemented") 
+    raise MajorError("Unimplemented") 
 
-def set_led(port):
-    MajorError("Unimplemented") 
+def emergency_all_stop_command(port):
+    raise MajorError("Unimplemented")
+
+################################################################
+# 
+# Higher Level Functions
+# 
 
 def reset_arduino(port):
     """
@@ -324,8 +375,11 @@ def reset_arduino(port):
     # make sure echo is off! (Doing it twice just in case)
     set_echo_off(port)
     do_ok_test(port)
-    get_version(port)
+    version = get_version(port)
+    print("Arduino Nano Software Version = ", version)
+    
     set_numeric_error_codes(port)    
+    # final tests that things are working ok
     do_ok_test(port)
 
 def set_up_port():
@@ -346,6 +400,50 @@ def set_up_port():
         print("Flushed bytes")
     return port
 
+
+def wait_for_button_press(port):
+    """
+    Wait for someone to press and release the button. 
+    While we are doing this we flash the LED.
+
+    :return: Switch status as a number
+    """
+    time_to_sleep = 0.02
+    time_to_recognise_press = 0.2
+    time_to_recognise_release = 0.1
+    led_flash_time = 0.5
+    count_to_recognise_press = time_to_recognise_press /  time_to_sleep
+    count_to_recognise_release = time_to_recognise_release /  time_to_sleep
+    count_led_flash_time = led_flash_time / time_to_sleep
+    
+    # wait for switch to be held consistently
+    count = 0
+    led_count = 0
+    while count < count_to_recognise_press:
+        state = get_switches(port)
+        if state == 16:
+            count += 1
+        else:
+            count = 0
+            led_count += 1
+            change_arduino_led(port, led_count > (count_led_flash_time/2) if 1 else 0)
+            if led_count > count_led_flash_time:
+                led_count = 0
+        time.sleep(time_to_sleep)
+        
+    # wait for switch to be released for a time
+    count = 0
+    while count < count_to_recognise_release:
+        state = get_switches(port)
+        if state != 16:
+            count += 1
+        else:
+            count = 0
+        time.sleep(time_to_sleep)
+        
+    return state
+
+    
 ################################################################
 # 
 # Main Program
@@ -355,9 +453,28 @@ def main():
     """ Main function """
     port = set_up_port()
     reset_arduino(port)
+
+    bat_voltage = get_battery_voltage(port)
+    print("Battery Voltage", bat_voltage, "volts")
+    if bat_voltage < BATTERY_VOLTAGE_TO_SHUTDOWN:
+        print("WARNING: Low Voltage")
+        # @todo: We shoudl shutdown!
     
-    #while True:
-    #    pass
+    switch_state = wait_for_button_press(port)
+
+    print("Switches selected as", "{0:04b}".format(switch_state))
+
+    bat_voltage = get_battery_voltage(port)
+    print("Battery Voltage", bat_voltage, "volts")
+    if bat_voltage < BATTERY_VOLTAGE_TO_SHUTDOWN:
+        print("WARNING: Low Voltage")
+        # @todo: We shoudl shutdown!
+    
+    # Loop where do we something ... in this case read the sensors and output 
+    # them on the LED
+    while get_switches(port) != 16:
+        time.sleep(0.01)
+
     print("Completed")
 
 if __name__ == "__main__":
