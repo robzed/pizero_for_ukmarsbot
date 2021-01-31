@@ -85,6 +85,9 @@ else:
 # Globals
 # 
 
+numeric_error_codes = False
+echo_on = True
+
 ################################################################
 # 
 # Constants
@@ -96,6 +99,16 @@ NEWLINE = b"\x0A"    # could be "\n" ... but we know only one byte is required
 # List of Commands
 # 
 RESET_STATE_COMMAND = b"^" + NEWLINE
+SHOW_VERSION_COMMAND = b"v" + NEWLINE
+VERBOSE_OFF_COMMAND = b"V0" + NEWLINE
+VERBOSE_ON_COMMAND = b"V1" + NEWLINE
+ECHO_OFF_COMMAND = b"E0" + NEWLINE
+ECHO_ON_COMMAND = b"E1" + NEWLINE
+OK_COMMAND = b"?" + NEWLINE
+HELP_COMMAND = b"h" + NEWLINE
+SWITCH_READ_COMMAND = b"s" + NEWLINE
+BATTERY_READ_COMMAND = b"b" + NEWLINE
+MOTOR_ACTION_STOP_COMMAND = b"x" + NEWLINE
 
 CONTROL_C_ETX = b"\x03"      # aborts line
 CONTROL_X_CAN = b"\x18"      # aborts line and resets interpreter
@@ -104,7 +117,30 @@ CONTROL_X_CAN = b"\x18"      # aborts line and resets interpreter
 # 
 # List of Responses
 # 
+
+UNSOLICITED_PREFIX = b"@"
+ERROR_PREFIX = b"@Error:"
 RESET_STATE_RETURN = b"RST"
+OK_RESULT_VERBOSE = b"OK"
+OK_RESULT_NUMERIC = ERROR_PREFIX + b"0"
+
+
+################################################################
+# 
+# Exceptions
+# 
+
+class SoftReset(Exception):
+    pass
+
+class ShutdownRequest(Exception):
+    pass
+
+class MajorError(Exception):
+    pass
+
+class SerialSyncError(Exception):
+    pass
 
 ################################################################
 # 
@@ -114,25 +150,144 @@ RESET_STATE_RETURN = b"RST"
 def do_command(port, command):
     pass
 
+def process_error_code(data):
+    print(data)
+    raise SerialSyncError("Interpreter Error code returned")
+
+def process_unsolicited_data(data):
+    """ This function handles any unsolicited data returns that are made.
+    These always start with an @ character
+    """
+    if data.startswith(ERROR_PREFIX):
+        process_error_code(data)
+    else:
+        # @todo: Process unsolicited data
+        print("Unsolicited data unhandled", data)
+
+
+def blocking_process_reply(port, expected):
+    """ This is a generic reply handler, that handles the most common cases of 
+    a single expected return"""
+
+    while True:
+        data = port.read_until(expected=NEWLINE)
+        if data[-1:] == NEWLINE:
+            if data.startswith(expected):
+                return True
+            # check for "@Defaulting Params" type commands
+            elif data[0] == UNSOLICITED_PREFIX:
+                process_unsolicited_data(data)
+            else:
+                # @todo: Probably need to handle errors here?
+                print(data)
+                raise SerialSyncError("Unexpected return data")
+        else:
+            # @todo: Get a better method than throwing an exception.
+            raise SerialSyncError("Newline not found - timeout")
+    
+    return False
+
+def blocking_get_reply(port):
+    """ This is a generic reply handler, that handles the most common cases of 
+    getting some result back"""
+
+    while True:
+        data = port.read_until(expected=NEWLINE)
+        #print('blocking_get_reply:', data)
+        if data[-1:] == NEWLINE:
+            # check for "@Defaulting Params" type commands
+            if data[0] == UNSOLICITED_PREFIX:
+                process_unsolicited_data(data)
+            else:
+                return data # includes the NEWLINE
+        else:
+            # @todo: Get a better method than throwing an exception.
+            raise SerialSyncError("Newline not found - timeout")
+    
+    return False
+
+
+def clear_replies(port):
+    """ This is a reply handler that ignores replies up to a timeout happens with no newline"""
+    while True:
+        data = port.read_until(expected=NEWLINE)
+        #print("clear_replies", data)
+        if NEWLINE in data:
+            if data[0] == b"@":
+                process_unsolicited_data(data)
+        else:
+            break
+    
+    
 ################################################################
 # 
 # Blocking Command Functions
-# These functions block until they receive an ok
+# These functions block until they receive an ok (if applicable).
+#
+# These blocking commands are one way at a time (also called a half-duplex 
+# protocol and/or synchronous) and and is slower that possible - because we 
+# don't use the both recieve and transmit cable at the same time.
+#
+# We can send and receive at the same time - because we have both a receive and 
+# a transmit cable. 
+#
+# This send-and-receive is also called asynchronous or full-duplex. However 
+# while this second, faster method, this is harder because we have to manage 
+# multiple commands at the same time and match the results to the command that
+# generated them.
 # 
-def do_ok(port):
-    pass
+# There are actually a few replies that happen asynchronously (unsolicited 
+# by command) but we handle these inside these commands.
+#
+# Generally blocking commands are much easier to work with - and should be how 
+# you start.
+
+def do_ok_test(port):
+    """ do_ok_test is a very basic command that always get a reply. Used for connection testing"""
+    port.write(OK_COMMAND)
+    if(numeric_error_codes):
+        blocking_process_reply(port, OK_RESULT_NUMERIC)
+    else:
+        blocking_process_reply(port, OK_RESULT_VERBOSE)
 
 def get_version(port):
-    pass
+    """ get_version is a very basic command that gets the version. Used for getting the version"""
+    port.write(SHOW_VERSION_COMMAND)
+    reply = blocking_get_reply(port)
+    print(reply.rstrip())
+
+def set_echo_off(port):
+    """ Send an echo off to supress echoing of the commands back to us.
+    This is a special command in that it doesn't care about any replys on purpose
+    """
+    port.write(ECHO_OFF_COMMAND)
+    clear_replies(port)
+    global echo_on
+    echo_on = False
+
+def set_echo_on(port):
+    """ Send an echo on. 
+    This is a special command in that it doesn't care about any replys on purpose
+    """
+    port.write(ECHO_ON_COMMAND)
+    clear_replies(port)
+    global echo_on
+    echo_on = True
+
+def set_numeric_error_codes(port):
+    MajorError("Unimplemented") 
+
+def set_text_error_codes(port):
+    MajorError("Unimplemented") 
 
 def get_switches(port):
-    pass
+    MajorError("Unimplemented") 
 
 def get_sensors(port):
-    pass
+    MajorError("Unimplemented") 
 
 def set_led(port):
-    pass
+    MajorError("Unimplemented") 
 
 def reset_arduino(port):
     """
@@ -143,9 +298,9 @@ def reset_arduino(port):
     :return: Nothing returned
     """ 
     port.write(CONTROL_C_ETX)
-    time.sleep(0.20)    # wait 20ms
+    time.sleep(0.02)    # wait 20ms
     port.write(CONTROL_X_CAN)
-    time.sleep(0.20)
+    time.sleep(0.02)
 
     found = False
     count = 50
@@ -154,7 +309,7 @@ def reset_arduino(port):
         time.sleep(0.20)
         # we do simple processing here
         lines = port.readlines()
-        print(lines)
+            #print(lines)
         for line in lines:
             if line.startswith(RESET_STATE_RETURN):
                 print("Reset arduino")
@@ -164,8 +319,14 @@ def reset_arduino(port):
             print("Having problems resetting arduino")
             count = 200
 
-    do_ok(port)
+    clear_replies(port)
+    set_echo_off(port)
+    # make sure echo is off! (Doing it twice just in case)
+    set_echo_off(port)
+    do_ok_test(port)
     get_version(port)
+    set_numeric_error_codes(port)    
+    do_ok_test(port)
 
 def set_up_port():
     """
