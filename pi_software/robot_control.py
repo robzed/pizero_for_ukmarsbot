@@ -11,7 +11,7 @@
 #
 # This is licensed under the MIT License. Please see LICENSE.
 #
-# @todo: Run from GUI and from command line .. and auto-detect which one
+# @TODO: Run from GUI and from command line .. and auto-detect which one
 #
 # NOTES
 # * Coding Convention PEP-8   https://www.python.org/dev/peps/pep-0008/
@@ -169,7 +169,7 @@ def process_unsolicited_data(data):
     if data.startswith(ERROR_PREFIX):
         process_error_code(data)
     else:
-        # @todo: Process unsolicited data
+        # TODO: Process unsolicited data
         print("Unsolicited data unhandled", data)
 
 
@@ -187,11 +187,11 @@ def blocking_process_reply(port, expected):
             elif data[0] == UNSOLICITED_PREFIX:
                 process_unsolicited_data(data)
             else:
-                # @todo: Probably need to handle errors here?
+                # TODO: Probably need to handle errors here?
                 print(data)
                 raise SerialSyncError("Unexpected return data")
         else:
-            # @todo: Get a better method than throwing an exception.
+            # TODO: Get a better method than throwing an exception.
             raise SerialSyncError("Newline not found - timeout")
     
     return False
@@ -210,7 +210,7 @@ def blocking_get_reply(port):
             else:
                 return data # includes the NEWLINE
         else:
-            # @todo: Get a better method than throwing an exception.
+            # TODO: Get a better method than throwing an exception.
             raise SerialSyncError("Newline not found - timeout")
     
     return False
@@ -458,7 +458,7 @@ def main():
     print("Battery Voltage", bat_voltage, "volts")
     if bat_voltage < BATTERY_VOLTAGE_TO_SHUTDOWN:
         print("WARNING: Low Voltage")
-        # @todo: We shoudl shutdown!
+        # TODO: We should shutdown!
     
     switch_state = wait_for_button_press(port)
 
@@ -468,7 +468,7 @@ def main():
     print("Battery Voltage", bat_voltage, "volts")
     if bat_voltage < BATTERY_VOLTAGE_TO_SHUTDOWN:
         print("WARNING: Low Voltage")
-        # @todo: We shoudl shutdown!
+        # TODO: We should shutdown!
     
     # Loop where do we something ... in this case read the sensors and output 
     # them on the LED
