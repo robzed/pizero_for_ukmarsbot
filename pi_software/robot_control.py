@@ -117,6 +117,7 @@ SWITCH_READ_COMMAND = b"s" + NEWLINE
 BATTERY_READ_COMMAND = b"b" + NEWLINE
 MOTOR_ACTION_STOP_COMMAND = b"x" + NEWLINE
 LED_COMMAND = b"l%i" + NEWLINE
+READ_SENSORS_COMMAND = b"S" + NEWLINE
 
 CONTROL_C_ETX = b"\x03"      # aborts line
 CONTROL_X_CAN = b"\x18"      # aborts line and resets interpreter
@@ -329,8 +330,24 @@ def get_battery_voltage(port):
     port.write(BATTERY_READ_COMMAND)
     return float(blocking_get_reply(port).decode(UKMARSEY_CLI_ENCODING))
 
+#sensor_read_count = 0
+#sensor_changed_count = 0
+
 def get_sensors(port):
-    raise MajorError("Unimplemented") 
+    """ Read the sensors from the robot 
+    Returns dark 4 sensors, then 4 sensors illuminated."""
+    #global sensor_changed_count
+    #global sensor_read_count
+    port.write(READ_SENSORS_COMMAND)
+    data = blocking_get_reply(port).decode(UKMARSEY_CLI_ENCODING)
+    data = data.strip()
+    #sensor_read_count += 1
+    if data[-1] == "*":
+        #sensor_changed_count += 1
+        #print("Sensor Changed {0} out of {1}".format(sensor_changed_count, sensor_read_count))
+        data = data[:-1]
+    data_list = [int(i) for i in data.split(',')]
+    return data_list
 
 def emergency_all_stop_command(port):
     raise MajorError("Unimplemented")
@@ -469,11 +486,13 @@ def main():
     if bat_voltage < BATTERY_VOLTAGE_TO_SHUTDOWN:
         print("WARNING: Low Voltage")
         # TODO: We should shutdown!
+
     
     # Loop where do we something ... in this case read the sensors and output 
     # them on the LED
     while get_switches(port) != 16:
         time.sleep(0.01)
+        get_sensors(port)
 
     print("Completed")
 
