@@ -118,6 +118,9 @@ BATTERY_READ_COMMAND = b"b" + NEWLINE
 MOTOR_ACTION_STOP_COMMAND = b"x" + NEWLINE
 LED_COMMAND = b"l%i" + NEWLINE
 READ_SENSORS_COMMAND = b"S" + NEWLINE
+PINMODE_COMMAND = b"P%i=%s" + NEWLINE
+DIGITAL_WRITE_COMMAND = b"D%i=%i" + NEWLINE
+DIGITAL_READ_COMMAND = b"D%i" + NEWLINE
 
 CONTROL_C_ETX = b"\x03"      # aborts line
 CONTROL_X_CAN = b"\x18"      # aborts line and resets interpreter
@@ -321,7 +324,43 @@ def change_arduino_led(port, state):
     """
     port.write(LED_COMMAND % state) 
     # No reply expected
+
+def configure_GPIO_pinmode(port, pin, mode):
+    ''' Same as Ardunio Pinmode - set the modes of the GPIO pins on the
+    Arduino. 
+    :param pin = pin number
+    :param mode = string "INPUT", "OUTPUT", or "INPUT_PULLUP"
+    :return None
+    '''
+    if mode == "INPUT":
+        mode = b"I"
+    elif mode == "OUTPUT":
+        mode = b"O"
+    elif mode == "INPUT_PULLUP":
+        mode = b"U"
+    else:
+        print("Error in configure_GPIO_pinmode - what is ", mode)
+        return 
     
+    port.write(PINMODE_COMMAND % (pin, mode))
+
+def write_GPIO_output(port, pin, state):
+    ''' Similar to digitalWrite on Arduino
+    :param pin = pin number
+    :param state = 0 or 1
+    :return None
+    '''
+    port.write(DIGITAL_WRITE_COMMAND % (pin, state))
+
+def read_GPIO_input(port, pin):
+    ''' Similar to digitalRead on Arduino
+    :param pin = pin number
+    :return 0 or 1
+    '''
+    port.write(DIGITAL_READ_COMMAND % pin)
+    reply = blocking_get_reply(port).rstrip()
+    return int(reply.decode(UKMARSEY_CLI_ENCODING))
+
 def change_sensor_led(port, led, state):
     raise MajorError("Unimplemented") 
 
@@ -444,6 +483,10 @@ def wait_for_button_press(port):
             count = 0
             led_count += 1
             change_arduino_led(port, led_count > (count_led_flash_time/2) if 1 else 0)
+            # TODO: move these output lines to sensor readings
+            write_GPIO_output(port, 6, led_count > (count_led_flash_time/4) if 1 else 0)
+            write_GPIO_output(port, 11, led_count > (count_led_flash_time/8) if 1 else 0 )
+
             if led_count > count_led_flash_time:
                 led_count = 0
         time.sleep(time_to_sleep)
@@ -471,6 +514,9 @@ def main():
     port = set_up_port()
     reset_arduino(port)
 
+    configure_GPIO_pinmode(port, 6, "OUTPUT")
+    configure_GPIO_pinmode(port, 11, "OUTPUT")
+    
     bat_voltage = get_battery_voltage(port)
     print("Battery Voltage", bat_voltage, "volts")
     if bat_voltage < BATTERY_VOLTAGE_TO_SHUTDOWN:
