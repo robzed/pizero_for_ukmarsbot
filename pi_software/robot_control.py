@@ -99,6 +99,7 @@ BATTERY_VOLTAGE_TO_SHUTDOWN = 7.0   # volts
 # if we don't get this version, then abort!
 MINIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION = 1.2
 NEWLINE = b"\x0A"    # could be "\n" ... but we know only one byte is required
+NEWLINE_VALUE = NEWLINE[0]
 UKMARSEY_CLI_ENCODING = 'utf8'
 
 ################################################################
@@ -139,6 +140,7 @@ CONTROL_X_CAN = b"\x18"      # aborts line and resets interpreter
 # 
 
 UNSOLICITED_PREFIX = b"@"
+UNSOLICITED_PREFIX_VALUE = UNSOLICITED_PREFIX[0]
 ERROR_PREFIX = b"@Error:"
 RESET_STATE_RETURN = b"RST"
 OK_RESULT_VERBOSE = b"OK"
@@ -162,6 +164,9 @@ class MajorError(Exception):
 class SerialSyncError(Exception):
     pass
 
+class InterpreterError(Exception):
+    pass
+
 ################################################################
 # 
 # General Commad Helper Functions
@@ -172,7 +177,7 @@ def do_command(port, command):
 
 def process_error_code(data):
     print(data)
-    raise SerialSyncError("Interpreter Error code returned")
+    raise InterpreterError("Interpreter Error code returned")
 
 def process_unsolicited_data(data):
     """ This function handles any unsolicited data returns that are made.
@@ -192,11 +197,11 @@ def blocking_process_reply(port, expected):
     while True:
         data = port.read_until(expected=NEWLINE)
         #print('blocking_process_reply:', data)
-        if data[-1:] == NEWLINE:
+        if data[-1] == NEWLINE_VALUE:
             if data.startswith(expected):
                 return True
             # check for "@Defaulting Params" type commands
-            elif data[0] == UNSOLICITED_PREFIX:
+            elif data[0] == UNSOLICITED_PREFIX_VALUE:
                 process_unsolicited_data(data)
             else:
                 # TODO: Probably need to handle errors here?
@@ -215,9 +220,9 @@ def blocking_get_reply(port):
     while True:
         data = port.read_until(expected=NEWLINE)
         #print('blocking_get_reply:', data)
-        if data[-1:] == NEWLINE:
+        if data[-1] == NEWLINE_VALUE:
             # check for "@Defaulting Params" type commands
-            if data[0] == UNSOLICITED_PREFIX:
+            if data[0] == UNSOLICITED_PREFIX_VALUE:
                 process_unsolicited_data(data)
             else:
                 return data # includes the NEWLINE
