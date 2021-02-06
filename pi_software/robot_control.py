@@ -383,16 +383,9 @@ def get_battery_voltage(port):
 def get_sensors(port):
     """ Read the sensors from the robot 
     Returns dark 4 sensors, then 4 sensors illuminated."""
-    #global sensor_changed_count
-    #global sensor_read_count
     port.write(READ_SENSORS_COMMAND)
     data = blocking_get_reply(port).decode(UKMARSEY_CLI_ENCODING)
     data = data.strip()
-    #sensor_read_count += 1
-    if data[-1] == "*":
-        #sensor_changed_count += 1
-        #print("Sensor Changed {0} out of {1}".format(sensor_changed_count, sensor_read_count))
-        data = data[:-1]
     data_list = [int(i) for i in data.split(',')]
     return data_list
 
