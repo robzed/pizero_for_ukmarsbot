@@ -21,9 +21,17 @@ import serial
 import time
 from sys import platform
 from robot_libs.Raspberry_Pi_Lib import is_raspberry_pi
+from robot_libs.serial_snooper import serial_snooper
+
 #from collections import deque
 #import datetime
 
+################################################################
+# 
+# Debug configuration
+# 
+
+SNOOP_SERIAL_DATA = False        # good but slow
 
 ################################################################
 # 
@@ -447,6 +455,8 @@ def set_up_port():
     :return: Nothing returned
     """ 
     port = serial.Serial(serial_port, baudrate = 57600, timeout = 0.1)
+    if SNOOP_SERIAL_DATA:
+        port = serial_snooper(port)
     time.sleep(0.05)
     bytes_waiting = port.in_waiting
     if bytes_waiting != 0:
