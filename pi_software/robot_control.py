@@ -446,7 +446,7 @@ def set_up_port():
     :param port: serial port, as opened by main
     :return: Nothing returned
     """ 
-    port = serial.Serial(serial_port, baudrate = 115200, timeout = 0.1)
+    port = serial.Serial(serial_port, baudrate = 57600, timeout = 0.1)
     time.sleep(0.05)
     bytes_waiting = port.in_waiting
     if bytes_waiting != 0:
