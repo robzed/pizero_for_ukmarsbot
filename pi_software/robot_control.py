@@ -517,7 +517,7 @@ def wait_for_button_press(port):
 # Main Program
 # 
     
-def main():
+def robot_control_main():
     """ Main function """
     port = set_up_port()
     reset_arduino(port)
@@ -550,5 +550,23 @@ def main():
 
     print("Completed")
 
+
+def main():
+    ''' This captures specific exceptions and cleans up and get's the robot
+        running again
+    '''
+    try:
+        robot_control_main()
+    except InterpreterError as ie:
+        print(type(ie), ie)
+        #TODO: Recover connection and stop robot
+    except SerialSyncError as sse:
+        print(type(sse), sse)
+        #TODO: Recover connection and stop robot
+'''        global port_snooper_copy
+        port_snooper_copy.print_all()
+   ''' 
+
 if __name__ == "__main__":
     main()
+
