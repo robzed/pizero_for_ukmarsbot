@@ -494,8 +494,8 @@ def wait_for_button_press(port):
             led_count += 1
             change_arduino_led(port, led_count > (count_led_flash_time/2) if 1 else 0)
             # TODO: move these output lines to sensor readings
-            write_GPIO_output(port, 6, led_count > (count_led_flash_time/4) if 1 else 0)
-            write_GPIO_output(port, 11, led_count > (count_led_flash_time/8) if 1 else 0 )
+            write_GPIO_output(port, 6, led_count > (count_led_flash_time/2) if 1 else 0)
+            write_GPIO_output(port, 11, led_count > (count_led_flash_time/2) if 1 else 0 )
 
             if led_count > count_led_flash_time:
                 led_count = 0
