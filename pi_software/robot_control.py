@@ -102,6 +102,18 @@ NEWLINE = b"\x0A"    # could be "\n" ... but we know only one byte is required
 NEWLINE_VALUE = NEWLINE[0]
 UKMARSEY_CLI_ENCODING = 'utf8'
 
+# the default values for the front sensor when the robot is backed up to a wall
+FRONT_REFERENCE = 44
+# the default values for the side sensors when the robot is centred in a cell
+LEFT_REFERENCE = 38
+RIGHT_REFERENCE = 49
+
+# the values above which, a wall is seen
+FRONT_WALL_THRESHOLD = FRONT_REFERENCE / 20  # minimum value to register a wall
+LEFT_WALL_THRESHOLD = LEFT_REFERENCE / 2     # minimum value to register a wall
+RIGHT_WALL_THRESHOLD = RIGHT_REFERENCE / 2   # minimum value to register a wall
+
+
 ################################################################
 # 
 # Globals
@@ -529,9 +541,11 @@ def robot_control_main():
     """ Main function """
     port = set_up_port()
     reset_arduino(port)
-
-    configure_GPIO_pinmode(port, 6, "OUTPUT")
-    configure_GPIO_pinmode(port, 11, "OUTPUT")
+    RIGHT_LED = 6
+    LEFT_LED = 11
+    
+    configure_GPIO_pinmode(port, RIGHT_LED, "OUTPUT")
+    configure_GPIO_pinmode(port, LEFT_LED, "OUTPUT")
     
     bat_voltage = get_battery_voltage(port)
     print("Battery Voltage", bat_voltage, "volts")
@@ -554,9 +568,28 @@ def robot_control_main():
     # them on the LED
     while get_switches(port) != 16:
         time.sleep(0.01)
-        get_sensors(port)
-        get_sensors_faster(port)
+        right, front, left, _ = get_sensors_faster(port)
+        gFrontWall = front > FRONT_REFERENCE / 4
+        gLeftWall = left > LEFT_REFERENCE / 2
+        gRightWall = right > RIGHT_REFERENCE / 2
+        change_arduino_led(port, gFrontWall if 1 else 0)
+        write_GPIO_output(port, LEFT_LED, gLeftWall if 1 else 0)
+        write_GPIO_output(port, RIGHT_LED, gRightWall if 1 else 0)
 
+    '''    
+        // calculate the alignment error - too far right is negative
+        if ((left + right) > (gLeftReference + gRightReference) / 4) {
+        if (left > right) {
+            gSensorCTE = (left - LEFT_REFERENCE);
+            gSensorCTE /= left;
+            } else {
+          gSensorCTE = (RIGHT_REFERENCE - right);
+          gSensorCTE /= right;
+            }
+          } else {
+            gSensorCTE = 0;
+          }
+          '''
     print("Completed")
 
 
