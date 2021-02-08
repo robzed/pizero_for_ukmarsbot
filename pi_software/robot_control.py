@@ -19,7 +19,7 @@
 
 import serial
 import time
-from sys import platform
+from sys import platform, exit
 from robot_libs.Raspberry_Pi_Lib import is_raspberry_pi
 from robot_libs.serial_snooper import serial_snooper
 
@@ -127,6 +127,7 @@ BATTERY_READ_COMMAND = b"b" + NEWLINE
 MOTOR_ACTION_STOP_COMMAND = b"x" + NEWLINE
 LED_COMMAND = b"l%i" + NEWLINE
 READ_SENSORS_COMMAND = b"S" + NEWLINE
+READ_SENSORS_HEX_COMMAND = b"Sh" + NEWLINE      # use read Hex (faster)
 PINMODE_COMMAND = b"P%i=%s" + NEWLINE
 DIGITAL_WRITE_COMMAND = b"D%i=%i" + NEWLINE
 DIGITAL_READ_COMMAND = b"D%i" + NEWLINE
@@ -382,16 +383,23 @@ def get_battery_voltage(port):
     port.write(BATTERY_READ_COMMAND)
     return float(blocking_get_reply(port).decode(UKMARSEY_CLI_ENCODING))
 
-#sensor_read_count = 0
-#sensor_changed_count = 0
 
 def get_sensors(port):
     """ Read the sensors from the robot 
-    Returns dark 4 sensors, then 4 sensors illuminated."""
+    Returns 4 sensor readings (light-dark) """
     port.write(READ_SENSORS_COMMAND)
     data = blocking_get_reply(port).decode(UKMARSEY_CLI_ENCODING)
     data = data.strip()
     data_list = [int(i) for i in data.split(',')]
+    return data_list
+
+def get_sensors_faster(port):
+    """ Read the sensors from the robot 
+    Returns 4 sensor readings (light-dark) """  
+    port.write(READ_SENSORS_HEX_COMMAND)
+    data = blocking_get_reply(port).decode(UKMARSEY_CLI_ENCODING)
+    data = data.strip()
+    data_list = list(bytes.fromhex(data))
     return data_list
 
 def emergency_all_stop_command(port):
@@ -547,6 +555,7 @@ def robot_control_main():
     while get_switches(port) != 16:
         time.sleep(0.01)
         get_sensors(port)
+        get_sensors_faster(port)
 
     print("Completed")
 
