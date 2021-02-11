@@ -97,7 +97,7 @@ else:
 BATTERY_VOLTAGE_TO_SHUTDOWN = 7.0   # volts
 
 # if we don't get this version, then abort!
-MINIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION = 1.2
+MINIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION = 1.3
 NEWLINE = b"\x0A"    # could be "\n" ... but we know only one byte is required
 NEWLINE_VALUE = NEWLINE[0]
 UKMARSEY_CLI_ENCODING = 'utf8'
@@ -398,7 +398,7 @@ def get_battery_voltage(port):
 
 def get_sensors(port):
     """ Read the sensors from the robot 
-    Returns 4 sensor readings (light-dark) """
+    Returns 6 sensor readings (light-dark) """
     port.write(READ_SENSORS_COMMAND)
     data = blocking_get_reply(port).decode(UKMARSEY_CLI_ENCODING)
     data = data.strip()
@@ -407,7 +407,7 @@ def get_sensors(port):
 
 def get_sensors_faster(port):
     """ Read the sensors from the robot 
-    Returns 4 sensor readings (light-dark) """  
+    Returns 6 sensor readings (light-dark) """  
     port.write(READ_SENSORS_HEX_COMMAND)
     data = blocking_get_reply(port).decode(UKMARSEY_CLI_ENCODING)
     data = data.strip()
@@ -472,7 +472,7 @@ def set_up_port():
     :param port: serial port, as opened by main
     :return: Nothing returned
     """ 
-    port = serial.Serial(serial_port, baudrate = 57600, timeout = 0.1)
+    port = serial.Serial(serial_port, baudrate = 115200, timeout = 0.1)
     if SNOOP_SERIAL_DATA:
         port = serial_snooper(port)
     time.sleep(0.05)
@@ -568,7 +568,7 @@ def robot_control_main():
     # them on the LED
     while get_switches(port) != 16:
         time.sleep(0.01)
-        right, front, left, _ = get_sensors_faster(port)
+        right, front, left, _, _, _ = get_sensors_faster(port)
         gFrontWall = front > FRONT_REFERENCE / 4
         gLeftWall = left > LEFT_REFERENCE / 2
         gRightWall = right > RIGHT_REFERENCE / 2
