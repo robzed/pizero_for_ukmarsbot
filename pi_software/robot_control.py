@@ -78,7 +78,8 @@ if platform == "linux" or platform == "linux2":
 
 elif platform == "darwin":
     # OS X - Mac Serial port
-    serial_port = "/dev/cu.usbserial-1420"
+    #serial_port = "/dev/cu.usbserial-1420"
+    serial_port = "/dev/cu.usbserial-1410"
     
 elif platform == "win32":
     # Windows...
@@ -411,7 +412,7 @@ def get_sensors_faster(port):
     port.write(READ_SENSORS_HEX_COMMAND)
     data = blocking_get_reply(port).decode(UKMARSEY_CLI_ENCODING)
     data = data.strip()
-    data_list = list(bytes.fromhex(data))
+    data_list = [x*4 for x in list(bytes.fromhex(data))]    # multiply by 4 to make consistent with other forms
     return data_list
 
 def emergency_all_stop_command(port):
