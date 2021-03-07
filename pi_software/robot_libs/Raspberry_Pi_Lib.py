@@ -8,6 +8,7 @@
 # This is licensed under the MIT License. Please see LICENSE.
 
 import os
+import sys
 
 RPI_file = "/sys/firmware/devicetree/base/model"
 
@@ -25,3 +26,11 @@ def is_raspberry_pi():
 			return True
 	return False
 
+def shutdown_raspberry_pi():
+	if is_raspberry_pi():
+		exit_code = os.system("sudo poweroff")
+		if exit_code != 0:
+			print("sudo poweroff failed")
+	else:
+		print("Shutdown called - but not Raspberry Pi")
+	sys.exit(1)
