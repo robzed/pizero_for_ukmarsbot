@@ -85,4 +85,19 @@ def battery_check(commands):
     # TODO: Make a periodic battery check
     # TODO: store battery voltage locally, so we don't read it more often than we need to if we are reading it periodically
     # TODO: Should periodic actions be via a timer queue system? (one shot or repeated)
+
+
+RIGHT_LED_GPIO = 6
+LEFT_LED_GPIO = 11
+        
+def setup_left_and_right_sensor_LEDs(commands):
+    ''' configure the led and right LEDs on the sensor board '''
+
+    commands.configure_GPIO_pinmode(RIGHT_LED_GPIO, "OUTPUT")
+    commands.configure_GPIO_pinmode(LEFT_LED_GPIO, "OUTPUT")
     
+def change_left_sensor_led(commands, state):
+    commands.write_GPIO_output(LEFT_LED_GPIO, state)
+
+def change_right_sensor_led(commands, state):
+    commands.write_GPIO_output(RIGHT_LED_GPIO, state)

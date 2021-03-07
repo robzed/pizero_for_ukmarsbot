@@ -26,6 +26,7 @@ from robot_libs.general_utils import version_check
 from robot_libs.ukmarsey_commands import UkmarseyCommands
 from robot_libs.ukmarsey_commands import InterpreterError, SerialSyncError
 from robot_libs.ukmarsey_utils import wait_for_button_press, battery_check
+from robot_libs.ukmarsey_utils import setup_left_and_right_sensor_LEDs, change_left_sensor_led, change_right_sensor_led
 import robot_settings
 import time
 
@@ -35,11 +36,7 @@ def robot_sensor_test_main():
     """
     commands = UkmarseyCommands(robot_settings.serial_port, robot_settings.SNOOP_SERIAL_DATA)
     commands.reset_arduino()
-    RIGHT_LED = 6
-    LEFT_LED = 11
-
-    commands.configure_GPIO_pinmode(RIGHT_LED, "OUTPUT")
-    commands.configure_GPIO_pinmode(LEFT_LED, "OUTPUT")
+    setup_left_and_right_sensor_LEDs(commands)
 
     battery_check(commands)
 
@@ -58,8 +55,8 @@ def robot_sensor_test_main():
         gLeftWall = left > robot_settings.LEFT_REFERENCE / 2
         gRightWall = right > robot_settings.RIGHT_REFERENCE / 2
         commands.change_arduino_led(gFrontWall if 1 else 0)
-        commands.write_GPIO_output(LEFT_LED, gLeftWall if 1 else 0)
-        commands.write_GPIO_output(RIGHT_LED, gRightWall if 1 else 0)
+        change_left_sensor_led(commands, gLeftWall if 1 else 0)
+        change_right_sensor_led(commands, gRightWall if 1 else 0)
 
     '''    
         // calculate the alignment error - too far right is negative
