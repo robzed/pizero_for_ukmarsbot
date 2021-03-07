@@ -55,6 +55,8 @@ READ_SENSORS_HEX_COMMAND = b"Sh" + NEWLINE      # use read Hex (faster)
 PINMODE_COMMAND = b"P%i=%s" + NEWLINE
 DIGITAL_WRITE_COMMAND = b"D%i=%i" + NEWLINE
 DIGITAL_READ_COMMAND = b"D%i" + NEWLINE
+SET_SPEED_AND_ROTATION = b"T%i,%i" + NEWLINE
+STOP_MOTORS_COMMANDS = b"x" + NEWLINE
 
 CONTROL_C_ETX = b"\x03"      # aborts line
 CONTROL_X_CAN = b"\x18"      # aborts line and resets interpreter
@@ -366,22 +368,28 @@ class UkmarseyCommands:
         return data_list
     
     def emergency_all_stop_command(self):
-        # TODO: Implement this! ('x' command, or control-X)
-        raise MajorError("Unimplemented")
+        # Control-X
+        self.port.write(CONTROL_X_CAN)
+        self.port.write(CONTROL_X_CAN)
+        self._clear_replies()
     
-    def low_battery_shutdown(self):
-        if not INHIBIT_LOW_BATTERY_SHUTDOWN:
-            self.emergency_all_stop_command()
-            shutdown_raspberry_pi()
-
+    def stop_motors(self):
+        self.port.write(STOP_MOTORS_COMMANDS)
+        
+    def set_speed_and_rotation(self, v, w):
+        self.port.write(SET_SPEED_AND_ROTATION % (v, w))
 
 
     ################################################################
     #
     # Higher Level Functions
     #
-    
-    
+
+    def low_battery_shutdown(self):
+        if not INHIBIT_LOW_BATTERY_SHUTDOWN:
+            self.emergency_all_stop_command()
+            shutdown_raspberry_pi()
+        
     def reset_arduino(self):
         """
         reset_arduino() does the correct things for us to get the Arduino Nano
@@ -425,6 +433,11 @@ class UkmarseyCommands:
         # final tests that things are working ok
         self.do_ok_test()
     
+    
+    ################################################################
+    #
+    # Set up Functions
+    #
     
     def set_up_port(self):
         """

@@ -30,15 +30,24 @@ from robot_libs.ukmarsey_utils import setup_left_and_right_sensor_LEDs, change_l
 import robot_settings
 import time
 
-def robot_sensor_test_main():
-    """
-    Main robot function 
-    """
+################################################################
+#
+# Functions
+#
+
+def robot_sensor_test_setup():
+    ''' do basic setup '''
     commands = UkmarseyCommands(robot_settings.serial_port, robot_settings.SNOOP_SERIAL_DATA)
     commands.reset_arduino()
     setup_left_and_right_sensor_LEDs(commands)
+    return commands
 
-    battery_check(commands)
+def robot_sensor_test_main(commands):
+    """
+    Main robot function 
+    """
+    bat_voltage = battery_check(commands)
+    print("Battery Voltage", bat_voltage, "volts")
 
     switch_state = wait_for_button_press(commands)
 
@@ -82,8 +91,9 @@ def main():
     '''
     version_check()
     try:
+        commands = robot_sensor_test_setup()
         while True:
-            robot_sensor_test_main()
+            robot_sensor_test_main(commands)
     except InterpreterError as ie:
         print(type(ie), ie)
         # TODO: Recover connection and stop robot

@@ -29,7 +29,7 @@ def wait_for_button_press(commands):
     :return: Switch status as a number
     """
     time_to_sleep = 0.02
-    time_to_recognise_press = 0.2
+    time_to_recognise_press = 0.1
     time_to_recognise_release = 0.1
     led_flash_time = 0.5
     count_to_recognise_press = time_to_recognise_press / time_to_sleep
@@ -73,18 +73,28 @@ def wait_for_button_press(commands):
     return state
 
 
+WARN_TIME = 10  # seconds
+next_warn_time = None
+
 def battery_check(commands):
     ''' read the battery and check if it's low. If it's low, shutdown ''' 
+    global next_warn_time
+    
     bat_voltage = commands.get_battery_voltage()
-    print("Battery Voltage", bat_voltage, "volts")
     # TODO: Make it indicate when the voltage is starting to get lower (e.g. LED display)
     if bat_voltage < robot_settings.BATTERY_VOLTAGE_TO_SHUTDOWN:
-        print("WARNING: Low Voltage")
+        if next_warn_time is None or time.time() > next_warn_time:
+            next_warn_time = time.time()+WARN_TIME
+            print("WARNING: Low Voltage", bat_voltage)
         # make it indicate when it is going to shut down? (all-flash?)
         commands.low_battery_shutdown()
+    else:
+        next_warn_time = None
     # TODO: Make a periodic battery check
     # TODO: store battery voltage locally, so we don't read it more often than we need to if we are reading it periodically
     # TODO: Should periodic actions be via a timer queue system? (one shot or repeated)
+    return bat_voltage
+
 
 
 RIGHT_LED_GPIO = 6
