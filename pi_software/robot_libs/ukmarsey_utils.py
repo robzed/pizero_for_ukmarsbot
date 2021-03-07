@@ -14,6 +14,7 @@
 # * Docstrings PEP-257   https://www.python.org/dev/peps/pep-0257/
 
 import time
+import robot_settings
 
 ################################################################
 #
@@ -44,6 +45,8 @@ def wait_for_button_press(commands):
             count += 1
         else:
             count = 0
+            # TODO: Make this have different LED displays, e.g. fade, all-flash, etc. 
+            # TODO: LED display manager (e.g. for waiting for button, shutting down, etc.)
             led_count += 1
             commands.change_arduino_led(led_count > (
                 count_led_flash_time/2) if 1 else 0)
@@ -69,3 +72,17 @@ def wait_for_button_press(commands):
 
     return state
 
+
+def battery_check(commands):
+    ''' read the battery and check if it's low. If it's low, shutdown ''' 
+    bat_voltage = commands.get_battery_voltage()
+    print("Battery Voltage", bat_voltage, "volts")
+    # TODO: Make it indicate when the voltage is starting to get lower (e.g. LED display)
+    if bat_voltage < robot_settings.BATTERY_VOLTAGE_TO_SHUTDOWN:
+        print("WARNING: Low Voltage")
+        # make it indicate when it is going to shut down? (all-flash?)
+        commands.low_battery_shutdown()
+    # TODO: Make a periodic battery check
+    # TODO: store battery voltage locally, so we don't read it more often than we need to if we are reading it periodically
+    # TODO: Should periodic actions be via a timer queue system? (one shot or repeated)
+    

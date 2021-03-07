@@ -22,14 +22,14 @@
 # * Coding Convention PEP-8   https://www.python.org/dev/peps/pep-0008/
 # * Docstrings PEP-257   https://www.python.org/dev/peps/pep-0257/
 
+from robot_libs.general_utils import version_check
 from robot_libs.ukmarsey_commands import UkmarseyCommands
 from robot_libs.ukmarsey_commands import InterpreterError, SerialSyncError
-from robot_libs.ukmarsey_utils import wait_for_button_press
+from robot_libs.ukmarsey_utils import wait_for_button_press, battery_check
 import robot_settings
 import time
 
-
-def robot_control_main():
+def robot_sensor_test_main():
     """
     Main robot function 
     """
@@ -41,34 +41,25 @@ def robot_control_main():
     commands.configure_GPIO_pinmode(RIGHT_LED, "OUTPUT")
     commands.configure_GPIO_pinmode(LEFT_LED, "OUTPUT")
 
-    while True:
-        bat_voltage = commands.get_battery_voltage()
-        print("Battery Voltage", bat_voltage, "volts")
-        if bat_voltage < robot_settings.BATTERY_VOLTAGE_TO_SHUTDOWN:
-            print("WARNING: Low Voltage")
-            # TODO: We should shutdown!
-    
-        switch_state = wait_for_button_press(commands)
-    
-        print("Switches selected as", "{0:04b}".format(switch_state))
-    
-        bat_voltage = commands.get_battery_voltage()
-        print("Battery Voltage", bat_voltage, "volts")
-        if bat_voltage < robot_settings.BATTERY_VOLTAGE_TO_SHUTDOWN:
-            print("WARNING: Low Voltage")
-            # TODO: We should shutdown!
-    
-        # Loop where do we something ... in this case read the sensors and output
-        # them on the LED
-        while commands.get_switches() != 16:
-            time.sleep(0.02)
-            right, front, left, _, _, _ = commands.get_sensors_faster()
-            gFrontWall = front > robot_settings.FRONT_REFERENCE / 4
-            gLeftWall = left > robot_settings.LEFT_REFERENCE / 2
-            gRightWall = right > robot_settings.RIGHT_REFERENCE / 2
-            commands.change_arduino_led(gFrontWall if 1 else 0)
-            commands.write_GPIO_output(LEFT_LED, gLeftWall if 1 else 0)
-            commands.write_GPIO_output(RIGHT_LED, gRightWall if 1 else 0)
+    battery_check(commands)
+
+    switch_state = wait_for_button_press(commands)
+
+    print("Switches selected as", "{0:04b}".format(switch_state))
+
+    battery_check(commands)
+
+    # Loop where do we something ... in this case read the sensors and output
+    # them on the LED
+    while commands.get_switches() != 16:
+        time.sleep(0.02)
+        right, front, left, _, _, _ = commands.get_sensors_faster()
+        gFrontWall = front > robot_settings.FRONT_REFERENCE / 4
+        gLeftWall = left > robot_settings.LEFT_REFERENCE / 2
+        gRightWall = right > robot_settings.RIGHT_REFERENCE / 2
+        commands.change_arduino_led(gFrontWall if 1 else 0)
+        commands.write_GPIO_output(LEFT_LED, gLeftWall if 1 else 0)
+        commands.write_GPIO_output(RIGHT_LED, gRightWall if 1 else 0)
 
     '''    
         // calculate the alignment error - too far right is negative
@@ -85,16 +76,17 @@ def robot_control_main():
           }
           '''
             
-    # because of while loop, we will never get here.
-    print("Completed")
+    print("Completed Sensor Test")
 
 
 def main():
     ''' This captures specific exceptions and cleans up and get's the robot
         running again
     '''
+    version_check()
     try:
-        robot_control_main()
+        while True:
+            robot_sensor_test_main()
     except InterpreterError as ie:
         print(type(ie), ie)
         # TODO: Recover connection and stop robot

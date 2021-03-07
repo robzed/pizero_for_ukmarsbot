@@ -26,7 +26,9 @@ def is_raspberry_pi():
 			return True
 	return False
 
+
 def shutdown_raspberry_pi():
+	''' do the right thing to shutdown the Raspberry Pi ''' 
 	if is_raspberry_pi():
 		exit_code = os.system("sudo poweroff")
 		if exit_code != 0:
@@ -34,3 +36,4 @@ def shutdown_raspberry_pi():
 	else:
 		print("Shutdown called - but not Raspberry Pi")
 	sys.exit(1)
+

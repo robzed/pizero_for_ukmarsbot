@@ -24,7 +24,7 @@ from robot_libs.Raspberry_Pi_Lib import is_raspberry_pi
 #
 
 SNOOP_SERIAL_DATA = False        # good but slow
-
+INHIBIT_LOW_BATTERY_SHUTDOWN = False    # stop shutdown. NOTICE: Overriden for Windows, Mac below.
 ################################################################
 #
 # Select correct serial port
@@ -74,10 +74,12 @@ elif platform == "darwin":
     #serial_port = "/dev/cu.usbserial-1420"
     #serial_port = "/dev/cu.usbserial-1410"
     serial_port = "/dev/cu.usbserial-14240"
+    INHIBIT_LOW_BATTERY_SHUTDOWN = True
 
 elif platform == "win32":
     # Windows...
     serial_port = "COM3"  #  select your Windows serial port here
+    INHIBIT_LOW_BATTERY_SHUTDOWN = True
 
 else:
     raise ValueError("Unknown platform")
