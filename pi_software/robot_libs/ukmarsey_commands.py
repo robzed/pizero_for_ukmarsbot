@@ -17,6 +17,7 @@
 
 import serial
 import time
+import datetime
 from robot_libs.serial_snooper import serial_snooper
 from robot_libs.Raspberry_Pi_Lib import shutdown_raspberry_pi
 from robot_settings import INHIBIT_LOW_BATTERY_SHUTDOWN
@@ -385,9 +386,12 @@ class UkmarseyCommands:
     # Higher Level Functions
     #
 
-    def low_battery_shutdown(self):
+    def low_battery_shutdown(self, bat_voltage):
         if not INHIBIT_LOW_BATTERY_SHUTDOWN:
             self.emergency_all_stop_command()
+            f = open('shutdown_log.txt', 'a')
+            f.write("%s Low Battery Shutdown - %fv\n" % (str(datetime.datetime.now()), bat_voltage))
+            f.close()
             shutdown_raspberry_pi()
         
     def reset_arduino(self):
