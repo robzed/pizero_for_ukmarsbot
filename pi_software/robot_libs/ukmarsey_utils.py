@@ -87,7 +87,7 @@ def battery_check(commands):
             next_warn_time = time.time()+WARN_TIME
             print("WARNING: Low Voltage", bat_voltage)
         # make it indicate when it is going to shut down? (all-flash?)
-        commands.low_battery_shutdown()
+        commands.low_battery_shutdown(bat_voltage)
     else:
         next_warn_time = None
     # TODO: Make a periodic battery check
