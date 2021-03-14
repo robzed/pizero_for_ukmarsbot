@@ -91,7 +91,7 @@ else:
 #
 
 # Set this to a resonable value
-BATTERY_VOLTAGE_TO_SHUTDOWN = 7.0   # volts
+BATTERY_VOLTAGE_TO_SHUTDOWN = 6.5   # volts
 
 # the default values for the front sensor when the robot is backed up to a wall
 FRONT_REFERENCE = 44
