@@ -38,7 +38,7 @@ import math
 #
 
 SPEED_TO_CIRCLE = 250    # in mm/s
-CIRCLE_DIAMETER = 30        # in mm
+CIRCLE_DIAMETER = 300        # in mm = 30cm
 
 ################################################################
 #
