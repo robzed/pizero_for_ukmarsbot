@@ -28,8 +28,8 @@ from robot_settings import INHIBIT_LOW_BATTERY_SHUTDOWN
 #
 
 # if we don't get this version, then abort!
-MINIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION = 1.4
-MAXIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION = 1.4    # can be None
+MINIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION = 1.5
+MAXIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION = 1.5    # can be None
 NEWLINE = b"\x0A"    # could be "\n" ... but we know only one byte is required
 NEWLINE_VALUE = NEWLINE[0]
 UKMARSEY_CLI_ENCODING = 'utf8'
@@ -56,7 +56,7 @@ READ_SENSORS_HEX_COMMAND = b"Sh" + NEWLINE      # use read Hex (faster)
 PINMODE_COMMAND = b"P%i=%s" + NEWLINE
 DIGITAL_WRITE_COMMAND = b"D%i=%i" + NEWLINE
 DIGITAL_READ_COMMAND = b"D%i" + NEWLINE
-SET_SPEED_AND_ROTATION = b"T%i,%i" + NEWLINE
+#SET_SPEED_AND_ROTATION = b"T%i,%i" + NEWLINE
 STOP_MOTORS_COMMANDS = b"x" + NEWLINE
 
 CONTROL_C_ETX = b"\x03"      # aborts line
@@ -241,12 +241,12 @@ class UkmarseyCommands:
     
         if version < MINIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION:
             print("Minimum required", MINIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION)
-            MajorError("Version too old for Pi Zero control program")
+            raise MajorError("Version too old for Pi Zero control program")
             
         if MAXIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION is not None:
             if version > MAXIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION:
                 print("Maximum required", MAXIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION)
-                MajorError("Version too new for Pi Zero control program")
+                raise MajorError("Version too new for Pi Zero control program")
         return version
     
     
@@ -377,8 +377,8 @@ class UkmarseyCommands:
     def stop_motors(self):
         self.port.write(STOP_MOTORS_COMMANDS)
         
-    def set_speed_and_rotation(self, v, w):
-        self.port.write(SET_SPEED_AND_ROTATION % (v, w))
+    #def set_speed_and_rotation(self, v, w):
+    #    self.port.write(SET_SPEED_AND_ROTATION % (v, w))
 
 
     ################################################################
