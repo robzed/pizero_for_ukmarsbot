@@ -12,6 +12,17 @@ import sys
 
 RPI_file = "/sys/firmware/devicetree/base/model"
 
+# https://gpiozero.readthedocs.io/en/stable/api_output.html#buzzer
+class buzzer_emulator:
+	def __init__(self): #, pin, *, active_high=True, initial_value=False, pin_factory=None):
+		pass
+	def on(self):
+		print("Simulated on")
+	def off(self):
+		print("Simulated on")
+	def beep(self, on_time=1, off_time=1, n=None, background=True):
+		print("Simulated beep for", on_time, off_time)
+
 def is_raspberry_pi():
 	"""
 	Checks a specific file to see this is likely to be a Raspberry Pi.
@@ -37,3 +48,15 @@ def shutdown_raspberry_pi():
 		print("Shutdown called - but not Raspberry Pi")
 	sys.exit(1)
 
+_buzzer = buzzer_emulator() 
+
+def define_gpio_ports():
+	if is_raspberry_pi():
+		# https://gpiozero.readthedocs.io/en/stable/api_output.html#buzzer
+		from gpiozero import Buzzer
+		global _buzzer
+		_buzzer = Buzzer(25)
+
+def get_buzzer():
+	return _buzzer
+ 
