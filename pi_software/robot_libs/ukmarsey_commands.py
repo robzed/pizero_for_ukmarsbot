@@ -21,6 +21,7 @@ import datetime
 from robot_libs.serial_snooper import serial_snooper
 from robot_libs.Raspberry_Pi_Lib import shutdown_raspberry_pi
 from robot_settings import INHIBIT_LOW_BATTERY_SHUTDOWN
+from robot_settings import USE_OK_FOR_ALL_COMMANDS
 
 ################################################################
 #
@@ -34,6 +35,11 @@ NEWLINE = b"\x0A"    # could be "\n" ... but we know only one byte is required
 NEWLINE_VALUE = NEWLINE[0]
 UKMARSEY_CLI_ENCODING = 'utf8'
 
+# sensor constants
+LEFT_SENSOR_INDEX = 2
+RIGHT_SENSOR_INDEX =  0
+FRONT_SENSOR_INDEX = 1
+
 
 ################################################################
 #
@@ -43,6 +49,8 @@ RESET_STATE_COMMAND = b"^" + NEWLINE
 SHOW_VERSION_COMMAND = b"v" + NEWLINE
 VERBOSE_OFF_COMMAND = b"V0" + NEWLINE
 VERBOSE_ON_COMMAND = b"V1" + NEWLINE
+EXTRA_VERBOSE_ON_COMMAND = b"V2" + NEWLINE
+
 ECHO_OFF_COMMAND = b"E0" + NEWLINE
 ECHO_ON_COMMAND = b"E1" + NEWLINE
 OK_COMMAND = b"?" + NEWLINE
@@ -58,6 +66,9 @@ DIGITAL_WRITE_COMMAND = b"D%i=%i" + NEWLINE
 DIGITAL_READ_COMMAND = b"D%i" + NEWLINE
 #SET_SPEED_AND_ROTATION = b"T%i,%i" + NEWLINE
 STOP_MOTORS_COMMANDS = b"x" + NEWLINE
+
+SENSOR_DISABLE = b"*0" + NEWLINE
+SENSOR_ENABLE = b"*1" + NEWLINE
 
 CONTROL_C_ETX = b"\x03"      # aborts line
 CONTROL_X_CAN = b"\x18"      # aborts line and resets interpreter
@@ -172,12 +183,14 @@ class UkmarseyCommands:
     
         while True:
             data = self.port.read_until(NEWLINE)
+
             #print('_blocking_get_reply:', data)
             if data[-1] == NEWLINE_VALUE:
                 # check for "@Defaulting Params" type commands
                 if data[0] == UNSOLICITED_PREFIX_VALUE:
                     self._process_unsolicited_data(data)
                 else:
+                    self._process_ok_reply()
                     return data  # includes the NEWLINE
             else:
                 # TODO: Get a better method than throwing an exception.
@@ -196,7 +209,13 @@ class UkmarseyCommands:
                     self._process_unsolicited_data(data)
             else:
                 break
+
+    def _process_ok_reply(self):
+        """ for commands that don't reply on success, enable a reply if super verbose is on"""
+        if(self.super_verbose):
+            self._blocking_process_reply(OK_RESULT_VERBOSE)
     
+
     
     ################################################################
     #
@@ -247,6 +266,7 @@ class UkmarseyCommands:
             if version > MAXIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION:
                 print("Maximum required", MAXIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION)
                 raise MajorError("Version too new for Pi Zero control program")
+
         return version
     
     
@@ -257,7 +277,8 @@ class UkmarseyCommands:
         self.port.write(ECHO_OFF_COMMAND)
         self._clear_replies()
         self.echo_on = False
-    
+        self._process_ok_reply()
+
     
     def set_echo_on(self):
         """ Send an echo on. 
@@ -266,26 +287,36 @@ class UkmarseyCommands:
         self.port.write(ECHO_ON_COMMAND)
         self._clear_replies()
         self.echo_on = True
+        self._process_ok_reply()
     
     
     def set_numeric_error_codes(self):
         self.port.write(VERBOSE_OFF_COMMAND)
         # No reply expected
+        self.super_verbose = False
         self.numeric_error_codes = True
-    
-    
+        self._process_ok_reply()
+
     def set_text_error_codes(self):
         self.port.write(VERBOSE_ON_COMMAND)
         # No reply expected
+        self.super_verbose = False
         self.numeric_error_codes = False
-    
+        self._process_ok_reply()
+
+    def set_super_verbose_codes(self):
+        self.port.write(EXTRA_VERBOSE_ON_COMMAND)
+        self.super_verbose = True
+        self.numeric_error_codes = False
+        self._process_ok_reply()
     
     def get_switches(self):
         """ get_switches """
         self.port.write(SWITCH_READ_COMMAND)
         reply = self._blocking_get_reply().rstrip()
-        return int(reply.decode(UKMARSEY_CLI_ENCODING))
-    
+        value = int(reply.decode(UKMARSEY_CLI_ENCODING)) 
+        return value
+
     
     def change_arduino_led(self, state):
         """
@@ -296,8 +327,9 @@ class UkmarseyCommands:
         :return: Nothing returned
         """
         self.port.write(LED_COMMAND % state)
-        # No reply expected
-    
+        # No reply expected in non-V2 mode
+        self._process_ok_reply()
+
     
     def configure_GPIO_pinmode(self, pin, mode):
         ''' Same as Ardunio Pinmode - set the modes of the GPIO pins on the
@@ -317,7 +349,8 @@ class UkmarseyCommands:
             return
     
         self.port.write(PINMODE_COMMAND % (pin, mode))
-    
+        self._process_ok_reply()
+
     
     def write_GPIO_output(self, pin, state):
         ''' Similar to digitalWrite on Arduino
@@ -326,7 +359,8 @@ class UkmarseyCommands:
         :return None
         '''
         self.port.write(DIGITAL_WRITE_COMMAND % (pin, state))
-    
+        self._process_ok_reply()
+
     
     def read_GPIO_input(self, pin):
         ''' Similar to digitalRead on Arduino
@@ -376,10 +410,25 @@ class UkmarseyCommands:
     
     def stop_motors(self):
         self.port.write(STOP_MOTORS_COMMANDS)
-        
+        self._process_ok_reply()
+
     #def set_speed_and_rotation(self, v, w):
     #    self.port.write(SET_SPEED_AND_ROTATION % (v, w))
 
+
+    def enable_sensors(self):
+        """ Send an echo on. 
+        This is a special command in that it doesn't care about any replys on purpose
+        """
+        self.port.write(SENSOR_ENABLE)
+        self._process_ok_reply()
+
+    def disable_sensors(self):
+        """ Send an echo on. 
+        This is a special command in that it doesn't care about any replys on purpose
+        """
+        self.port.write(SENSOR_DISABLE)
+        self._process_ok_reply()
 
     ################################################################
     #
@@ -433,11 +482,20 @@ class UkmarseyCommands:
         print("Arduino Nano Software Version = ", version)
         self._clear_replies()   # clear ok from get version
 
-        self.set_numeric_error_codes()
+        # which type of replies do we want?
+        if USE_OK_FOR_ALL_COMMANDS:
+            self.set_super_verbose_codes()
+        else:
+            self.set_numeric_error_codes()
+        
         # final tests that things are working ok
         self.do_ok_test()
     
-    
+    def front_wall_sensor(self):
+        sensor_list = self.get_sensors_faster()
+        print(sensor_list)
+        return sensor_list[FRONT_SENSOR_INDEX]
+
     ################################################################
     #
     # Set up Functions
@@ -479,4 +537,5 @@ class UkmarseyCommands:
             self.port = None
             
         self.numeric_error_codes = False
+        self.super_verbose = False
         self.echo_on = True
