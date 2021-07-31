@@ -25,6 +25,8 @@ from robot_libs.Raspberry_Pi_Lib import is_raspberry_pi
 
 SNOOP_SERIAL_DATA = False        # good but slow
 INHIBIT_LOW_BATTERY_SHUTDOWN = False    # stop shutdown. NOTICE: Overriden for Windows, Mac below.
+USE_OK_FOR_ALL_COMMANDS = True # slows down replies, but ensures all replies are acknowledged
+
 ################################################################
 #
 # Select correct serial port
