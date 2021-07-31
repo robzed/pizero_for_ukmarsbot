@@ -111,3 +111,21 @@ def change_left_sensor_led(commands, state):
 
 def change_right_sensor_led(commands, state):
     commands.write_GPIO_output(RIGHT_LED_GPIO, state)
+    
+
+
+def wait_for_front_sensor(commands, delay=time.sleep):
+    ''' wait for hand to be waved in front of sensor '''
+    commands.enable_sensors()
+    delay(0.01)
+    
+    while commands.front_wall_sensor() < 250:
+        delay(0.01)
+
+    while (commands.front_wall_sensor() > 200):
+        delay(0.01)
+
+    commands.disable_sensors(commands)
+    
+    delay(0.5)
+
