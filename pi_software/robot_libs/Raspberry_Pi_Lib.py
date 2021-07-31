@@ -9,6 +9,7 @@
 
 import os
 import sys
+import time
 
 RPI_file = "/sys/firmware/devicetree/base/model"
 
@@ -22,6 +23,7 @@ class buzzer_emulator:
 		print("Simulated on")
 	def beep(self, on_time=1, off_time=1, n=None, background=True):
 		print("Simulated beep for", on_time, off_time)
+
 
 RPI_TEST_FLAG = None
 
@@ -63,4 +65,9 @@ def define_gpio_ports():
 
 def get_buzzer():
 	return _buzzer
- 
+
+def beep(on_time, delay=time.sleep):
+	''' Simple beep that just pauses for a while '''
+	get_buzzer().on()
+	delay(on_time)
+	get_buzzer().off()
