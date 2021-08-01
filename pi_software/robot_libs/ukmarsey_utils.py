@@ -21,13 +21,16 @@ import robot_settings
 # Functions
 #
 
-def wait_for_button_press(commands):
+def wait_for_button_press(commands, delay=time.sleep):
     """
     Wait for someone to press and release the button. 
     While we are doing this we flash the LED.
 
     :return: Switch status as a number
     """
+    commands.enable_sensors()
+    delay(0.01)
+
     time_to_sleep = 0.02
     time_to_recognise_press = 0.1
     time_to_recognise_release = 0.1
@@ -69,6 +72,12 @@ def wait_for_button_press(commands):
         else:
             count = 0
         time.sleep(time_to_sleep)
+
+    commands.change_arduino_led(0)
+    commands.write_GPIO_output(6, 0)
+    commands.write_GPIO_output(11, 0)
+
+    commands.disable_sensors()
 
     return state
 
@@ -119,13 +128,23 @@ def wait_for_front_sensor(commands, delay=time.sleep):
     commands.enable_sensors()
     delay(0.01)
     
-    while commands.front_wall_sensor() < 250:
+    # test code
+    #while True:
+    #    level = commands.front_wall_sensor()
+    #    commands.change_arduino_led(level > 250 if 1 else 0)
+    #    change_left_sensor_led(commands, level > 150 if 1 else 0)
+    #    change_right_sensor_led(commands, level > 50 if 1 else 0)
+    #    print(level)
+    #    delay(0.5)
+    # end of test code
+    
+    while commands.front_wall_sensor() < 200:
         delay(0.01)
 
-    while (commands.front_wall_sensor() > 200):
+    while (commands.front_wall_sensor() > 230):
         delay(0.01)
-
-    commands.disable_sensors(commands)
+        
+    commands.disable_sensors()
     
     delay(0.5)
 

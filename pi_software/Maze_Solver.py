@@ -87,6 +87,7 @@ def main():
     
     try:
         commands = robot_print_data_setup()
+        setup_left_and_right_sensor_LEDs(commands)
         robot_print_data_main(commands)
         
         while True:

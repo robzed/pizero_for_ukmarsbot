@@ -29,8 +29,8 @@ from robot_settings import USE_OK_FOR_ALL_COMMANDS
 #
 
 # if we don't get this version, then abort!
-MINIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION = 1.5
-MAXIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION = 1.5    # can be None
+MINIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION = 1.6
+MAXIMUM_UKMARSEY_ARDUINO_NANO_SOFTWARE_VERSION = 1.6    # can be None
 NEWLINE = b"\x0A"    # could be "\n" ... but we know only one byte is required
 NEWLINE_VALUE = NEWLINE[0]
 UKMARSEY_CLI_ENCODING = 'utf8'
@@ -493,7 +493,6 @@ class UkmarseyCommands:
     
     def front_wall_sensor(self):
         sensor_list = self.get_sensors_faster()
-        print(sensor_list)
         return sensor_list[FRONT_SENSOR_INDEX]
 
     ################################################################
